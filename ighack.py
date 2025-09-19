@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Termux-ready IG HACK reel script
-- Big, centered bold title "INSTA HACK" with color fade effect
+- Single big centered bold title "INSTA HACK" with color fade effect
 - Subtitle: [Instagram - Xyberkruze]
 - Final message "Valla Panikkum Poda..." scrolling down infinitely with color/font variations
 - Optional: `pip install instaloader` to enable public profile fetch (visual only)
@@ -15,7 +15,6 @@ import shutil
 import re
 from itertools import cycle
 
-# Optional instaloader import (public info only)
 try:
     import instaloader
     HAS_INSTALOADER = True
@@ -126,14 +125,9 @@ def get_profile_info(username):
 
 # ===== Title =====
 def render_title(width):
-    raw = "INSTA HACK"
-    title_colors = [RED, PINK, GREEN]
-    lines = []
-    for c in title_colors:
-        lines.append(center(BOLD + c + raw + RESET, width))
+    title = "INSTA HACK"
     subtitle = "[Instagram - Xyberkruze]"
-    lines.append(center(WHITE + subtitle + RESET, width))
-    return "\n".join(lines)
+    return center(BOLD + RED + title + RESET, width) + "\n" + center(WHITE + subtitle + RESET, width)
 
 # ===== Final scrolling message =====
 def final_message_loop(cols):
@@ -156,14 +150,12 @@ def main():
     clear()
     cols, rows = term_size()
 
-    # Title fade effect before user input
+    # Title fade effect
     for _ in range(2):
         for color in [RED, PINK, GREEN]:
             clear()
-            lines = render_title(cols).splitlines()
-            for line in lines[:-1]:
-                print(center(BOLD + color + "INSTA HACK" + RESET, cols))
-            print(center(lines[-1], cols))
+            print(center(BOLD + color + "INSTA HACK" + RESET, cols))
+            print(center(WHITE + "[Instagram - Xyberkruze]" + RESET, cols))
             time.sleep(0.5)
 
     # Prompt username
@@ -217,6 +209,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
