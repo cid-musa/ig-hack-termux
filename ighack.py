@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Termux-ready IG HACK reel script
-- Single big bold title "INSTA HACK" in large ASCII letters with fade effect
+- Single big bold title "INSTA HACK" in custom ASCII art with fade effect
 - Subtitle: [Instagram - Xyberkruze]
 - Final message "Valla Panikkum Poda..." scrolling infinitely with bold and color variations
 """
@@ -14,13 +14,6 @@ try:
     HAS_INSTALOADER = True
 except Exception:
     HAS_INSTALOADER = False
-
-# ASCII art
-try:
-    from pyfiglet import Figlet
-    HAS_FIGLET = True
-except ImportError:
-    HAS_FIGLET = False
 
 # Colors
 GREEN, RED, WHITE, PINK, BLUE, YELLOW = "\033[92m", "\033[91m", "\033[97m", "\033[95m", "\033[94m", "\033[93m"
@@ -115,15 +108,20 @@ def get_profile_info(username):
         }
     except: return None
 
+# ===== Custom ASCII title =====
+ASCII_TITLE = """
+ __    _______     __    __       ___       ______  __  ___ 
+|  |  /  _____|   |  |  |  |     /   \     /      ||  |/  / 
+|  | |  |  __     |  |__|  |    /  ^  \   |  ,----'|  '  /  
+|  | |  | |_ |    |   __   |   /  /_\  \  |  |     |    <   
+|  | |  |__| |    |  |  |  |  /  _____  \ |  `----.|  .  \  
+|__|  \______|    |__|  |__| /__/     \__\ \______||__|\__\ 
+"""
+
 # ===== Render single big ASCII title =====
 def render_title(width, color):
     subtitle = "[Instagram - Xyberkruze]"
-    if HAS_FIGLET:
-        f = Figlet(font="slant")  # You can choose any font
-        title = f.renderText("INSTA HACK")
-    else:
-        title = "INSTA HACK"
-    return center(BOLD + color + title + RESET, width) + "\n" + center(WHITE + subtitle + RESET, width)
+    return center(BOLD + color + ASCII_TITLE + RESET, width) + "\n" + center(WHITE + subtitle + RESET, width)
 
 # ===== Final scrolling message =====
 def final_message_loop(cols):
@@ -201,3 +199,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
