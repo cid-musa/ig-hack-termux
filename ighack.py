@@ -15,6 +15,7 @@ import shutil
 import re
 from itertools import cycle
 
+# Optional instaloader import (public info only)
 try:
     import instaloader
     HAS_INSTALOADER = True
@@ -61,10 +62,6 @@ def slow_print(text, delay=0.01, color=GREEN):
         sys.stdout.flush()
         time.sleep(delay)
     print()
-
-# ===== "Fonts" helpers =====
-def spaced_caps(s, sep=" "):
-    return sep.join(list(s.upper()))
 
 # ===== Fake cracking helpers =====
 COMMON = ["password","123456","qwerty","insta2025","letmein","admin","passw0rd"]
@@ -130,30 +127,43 @@ def get_profile_info(username):
 # ===== Title =====
 def render_title(width):
     raw = "INSTA HACK"
-    # single big bold style, fade colors
-    title_styles = [RED, PINK, GREEN]
-    result = []
-    for c in title_styles:
-        result.append(center(BOLD + c + raw + RESET, width))
-    # Subtitle
+    title_colors = [RED, PINK, GREEN]
+    lines = []
+    for c in title_colors:
+        lines.append(center(BOLD + c + raw + RESET, width))
     subtitle = "[Instagram - Xyberkruze]"
-    result.append(center(WHITE + subtitle + RESET, width))
-    return "\n".join(result)
+    lines.append(center(WHITE + subtitle + RESET, width))
+    return "\n".join(lines)
+
+# ===== Final scrolling message =====
+def final_message_loop(cols):
+    final_msg = "Valla Panikkum Poda..."
+    styles = [(GREEN, True), (PINK, True), (BLUE, True), (YELLOW, True), (WHITE, False)]
+    try:
+        idx = 0
+        while True:
+            color, bold = styles[idx % len(styles)]
+            txt = (BOLD if bold else "") + color + final_msg + RESET
+            print(center(txt, cols))
+            idx += 1
+            time.sleep(0.6)
+    except KeyboardInterrupt:
+        print("\n" + RED + "Exiting..." + RESET)
+        return
 
 # ===== Main =====
 def main():
     clear()
     cols, rows = term_size()
 
-    # Title fade-in/out effect
-    title_text = render_title(cols)
-    for _ in range(2):  # fade in/out twice before user input
+    # Title fade effect before user input
+    for _ in range(2):
         for color in [RED, PINK, GREEN]:
             clear()
-            title_lines = title_text.splitlines()
-            for line in title_lines[:-1]:  # title only
+            lines = render_title(cols).splitlines()
+            for line in lines[:-1]:
                 print(center(BOLD + color + "INSTA HACK" + RESET, cols))
-            print(center(title_lines[-1], cols))  # subtitle
+            print(center(lines[-1], cols))
             time.sleep(0.5)
 
     # Prompt username
@@ -169,7 +179,7 @@ def main():
         print(RED + "No username provided. Exiting." + RESET)
         return
 
-    # Public profile fetch (optional)
+    # Optional public profile fetch
     profile = get_profile_info(username)
     if profile:
         tprint("\n" + BLUE + f"[*] Public data for @{username}" + RESET)
@@ -202,22 +212,11 @@ def main():
     progress_bar("Executing exploit", total=28, color=RED)
     time.sleep(0.6)
 
-    # ===== Final scrolling message =====
-    final_msg = "Valla Panikkum Poda..."
-    styles = [(GREEN, True), (PINK, True), (BLUE, True), (YELLOW, True), (WHITE, False)]
-    try:
-        y = 0
-        while True:
-            color, bold = styles[y % len(styles)]
-            txt = (BOLD if bold else "") + color + final_msg + RESET
-            print(center(txt, cols))
-            y += 1
-            time.sleep(0.6)
-    except KeyboardInterrupt:
-        print("\n" + RED + "Exiting..." + RESET)
-        return
+    # Show final scrolling message infinitely
+    final_message_loop(cols)
 
 if __name__ == "__main__":
     main()
+
 
 
