@@ -138,7 +138,7 @@ def main():
             time.sleep(0.5)
 
     # Username input
-    sys.stdout.write(GREEN + "[+] Enter Instagram username: " + RESET)
+    sys.stdout.write(GREEN + "[+] Username: " + RESET)
     sys.stdout.flush()
     try:
         username = input().strip()
