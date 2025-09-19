@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Termux-friendly IG HACK reel (visual mock only).
-
-- Uses big, clean "normal" looking titles by converting text to fullwidth Unicode.
-- Optional: `pip install instaloader` to fetch public profile stats.
-- Final big green message will remain on-screen (blinking) until you press Ctrl+C.
+Termux-ready IG HACK reel script
+- Big, fixed, centered title (multiple font styles stacked)
+- Subtitle: [Instagram - Xyberkruze]
+- Final message "Valla Panikkum Poda" normal size, centered, stays on screen (program runs until Ctrl+C)
+- Optional: `pip install instaloader` to enable public profile fetch (visual only)
 """
 
 import os
@@ -28,9 +28,10 @@ RED    = "\033[91m"
 WHITE  = "\033[97m"
 PINK   = "\033[95m"
 BLUE   = "\033[94m"
+YELLOW = "\033[93m"
 BOLD   = "\033[1m"
 RESET  = "\033[0m"
-COLORS = [GREEN, RED, WHITE, PINK, BLUE]
+PALETTE = [GREEN, RED, WHITE, PINK, BLUE, YELLOW]
 
 # ===== Utilities =====
 def term_size():
@@ -44,6 +45,7 @@ def strip_ansi(s):
     return re.sub(r'\033\[[0-9;]*m', '', s)
 
 def center(text, width):
+    """Center text taking ANSI codes into account (approx)."""
     plain = strip_ansi(text)
     pad = max((width - len(plain)) // 2, 0)
     return " " * pad + text
@@ -51,35 +53,43 @@ def center(text, width):
 def clear():
     os.system("clear" if os.name != "nt" else "cls")
 
-def slow_print(text, delay=0.02, color=GREEN):
+def tprint(text, color=WHITE):
+    sys.stdout.write(color + text + RESET + "\n")
+    sys.stdout.flush()
+
+def slow_print(text, delay=0.01, color=GREEN):
     for ch in text:
         sys.stdout.write(color + ch + RESET)
         sys.stdout.flush()
         time.sleep(delay)
     print()
 
-def tprint(text, color=WHITE):
-    sys.stdout.write(color + text + RESET + "\n")
-    sys.stdout.flush()
-
-# ===== Fullwidth conversion to make "normal" text look big =====
-# converts ASCII chars (33..126) to their fullwidth Unicode equivalents
+# ===== "Fonts" helpers =====
 def to_fullwidth(s):
+    # Make letters look big using fullwidth unicode
     out = []
     for ch in s:
         code = ord(ch)
         if 33 <= code <= 126:
             out.append(chr(code + 0xFEE0))
         elif ch == " ":
-            out.append("　")  # fullwidth space
+            out.append("　")
         else:
             out.append(ch)
     return "".join(out)
 
-# ===== Fake cracking helpers =====
+def spaced_caps(s, sep=" "):
+    # Spaced uppercase letters
+    return sep.join(list(s.upper()))
+
+def double_stack(s):
+    # Return s twice with a small offset (gives a slightly bolder look)
+    return s + "\n" + s
+
+# ===== Fake cracking helpers (visual only) =====
 COMMON = ["password","123456","qwerty","insta2025","letmein","admin","passw0rd"]
 
-def fake_crack(duration=3, width=40):
+def fake_crack(duration=2.5, width=40):
     start = time.time()
     sp = cycle("|/-\\")
     while time.time() - start < duration:
@@ -87,13 +97,13 @@ def fake_crack(duration=3, width=40):
         left = f"[crack] trying: {pwd}"
         sys.stdout.write("\r" + BLUE + left.ljust(width) + " " + next(sp) + RESET)
         sys.stdout.flush()
-        time.sleep(0.06 + random.random() * 0.03)
+        time.sleep(0.05 + random.random() * 0.03)
     found = "*" * random.randint(8, 12)
     sys.stdout.write("\r" + GREEN + f"[crack] FOUND: {found}".ljust(width) + "   " + RESET + "\n")
     sys.stdout.flush()
     time.sleep(0.5)
 
-def spinner(label, steps=20, delay=0.04, color=WHITE):
+def spinner(label, steps=18, delay=0.04, color=WHITE):
     sp = cycle("|/-\\")
     for _ in range(steps):
         sys.stdout.write("\r" + color + f"[*] {label:<36} {next(sp)}" + RESET)
@@ -102,19 +112,19 @@ def spinner(label, steps=20, delay=0.04, color=WHITE):
     sys.stdout.write("\r" + " " * 80 + "\r")
     sys.stdout.flush()
 
-def progress_bar(task="Processing", total=30, color=RED):
+def progress_bar(task="Processing", total=28, color=RED):
     cols, _ = term_size()
-    bar_w = max(min(cols - 30, 40), 20)
-    for i in range(total+1):
-        filled = int((i/total) * bar_w)
+    bar_w = max(min(cols - 30, 44), 20)
+    for i in range(total + 1):
+        filled = int((i / total) * bar_w)
         bar = "#" * filled + "-" * (bar_w - filled)
-        pct = int((i/total) * 100)
-        sys.stdout.write(f"\r{color}{task:<12}: [{bar}] {pct:3d}%{RESET}")
+        pct = int((i / total) * 100)
+        sys.stdout.write(f"\r{color}{task:<14}: [{bar}] {pct:3d}%{RESET}")
         sys.stdout.flush()
         time.sleep(0.06)
     print()
 
-# ===== Optional instaloader helpers (public data only) =====
+# ===== instaloader helpers (optional) =====
 def extract_other_account(bio):
     m = re.findall(r"@([A-Za-z0-9_.]+)", bio or "")
     return m[0] if m else None
@@ -137,27 +147,52 @@ def get_profile_info(username):
     except Exception:
         return None
 
-# ===== Main flow =====
+# ===== Render big fixed centered title + subtitle =====
+def render_big_title(width):
+    # Title content
+    raw = "INSTA HACK"
+
+    # Three visual font styles (stacked), all centered and colorized separately:
+    # 1) Fullwidth (very big)
+    fw = to_fullwidth(raw)            # big fullwidth
+    # 2) Spaced caps (airy, different font)
+    sp = spaced_caps(raw, sep=" ")    # spaced uppercase
+    # 3) Bold normal (adds weight)
+    bd = raw                          # bold normal
+
+    # Colors for each style (choose palette for premium look)
+    c1 = RED
+    c2 = PINK
+    c3 = GREEN
+
+    # Compose lines: fullwidth may be long — center each line individually
+    lines = []
+    # If terminal is too narrow, fall back to smaller variants
+    if width < 40:
+        # stack just spaced + bold to avoid wrapping
+        lines.append(center(c2 + sp + RESET, width))
+        lines.append(center(BOLD + c3 + bd + RESET, width))
+    else:
+        lines.append(center(BOLD + c1 + fw + RESET, width))
+        # small gap
+        lines.append(center(c2 + sp + RESET, width))
+        lines.append(center(BOLD + c3 + bd + RESET, width))
+
+    # Subtitle below heading (exact)
+    subtitle = "[Instagram - Xyberkruze]"
+    lines.append(center(WHITE + subtitle + RESET, width))
+
+    return "\n".join(lines)
+
+# ===== Main =====
 def main():
     clear()
     cols, rows = term_size()
 
-    # Title text (big, normal-looking via fullwidth)
-    title_text = "INSTA HACK"
-    big_title = to_fullwidth(title_text)  # fullwidth "big" text
-    title_line = BOLD + RED + big_title + RESET
+    # Render big fixed title
+    print("\n" + render_big_title(cols) + "\n")
 
-    # subtitle small IG tag
-    ig_tag = PINK + "[ instagram · visual mock ]" + RESET
-
-    # print centered big title (maybe multiple lines for emphasis)
-    print("\n")
-    print(center(title_line, cols))
-    # small gap and subtitle
-    print(center(ig_tag, cols))
-    print("\n")
-
-    # prompt for username
+    # Prompt username
     sys.stdout.write(GREEN + "[+] Enter Instagram username: " + RESET)
     sys.stdout.flush()
     try:
@@ -170,7 +205,7 @@ def main():
         print(RED + "No username provided. Exiting." + RESET)
         return
 
-    # show public info if possible
+    # Public profile fetch (optional)
     profile = get_profile_info(username)
     if profile:
         tprint("\n" + BLUE + f"[*] Public data for @{username}" + RESET)
@@ -196,35 +231,46 @@ def main():
     slow_print("[*] Injecting session token...", delay=0.004, color=GREEN)
     time.sleep(0.25)
 
-    # more fake steps
+    # More steps
     for s in ["Extracting session cookies...", "Escalating privileges...", "Installing stealth module..."]:
-        spinner(s, steps=12, delay=0.05, color=random.choice(COLORS))
-        slow_print(f"[*] {s} [OK]", delay=0.003, color=random.choice(COLORS))
+        spinner(s, steps=12, delay=0.05, color=random.choice(PALETTE))
+        slow_print(f"[*] {s} [OK]", delay=0.003, color=random.choice(PALETTE))
 
     progress_bar("Executing exploit", total=28, color=RED)
     time.sleep(0.6)
 
-    # Final message — big and green (fullwidth), medium-sized
-    final_text = "Valla Panikkum Poda..."
-    big_final = to_fullwidth(final_text)
-    final_line = GREEN + big_final + RESET
+    # Final line: normal size, centered, different fonts/colors displayed permanently
+    final_plain = "Valla Panikkum Poda..."
+    final_small = final_plain  # normal size as requested
 
-    # Print final centered and then keep it on-screen (blinking) until Ctrl+C
-    print("\n" + center(final_line, cols) + "\n")
-    print(center(WHITE + "(Press Ctrl+C to exit)" + RESET, cols))
+    # We'll show the final text in a steady state (no blink), but slowly cycle its color and style
+    # so it looks premium while staying fixed in the center.
+    styles = [
+        (GREEN, False),
+        (PINK, True),
+        (BLUE, False),
+        (YELLOW, True),
+        (WHITE, False)
+    ]
+
     try:
-        show = True
+        # Print initial final message centered
+        print("\n" + center(BOLD + GREEN + final_small + RESET, cols))
+        print(center(WHITE + "(Press Ctrl+C to exit)" + RESET, cols))
+        # Now keep updating color/style in-place so the message appears "alive" but stays centered
+        idx = 0
         while True:
-            # blink: show/hide the big final line (keeps program running)
-            if show:
-                sys.stdout.write("\r" + center(final_line, cols))
-            else:
-                sys.stdout.write("\r" + " " * cols)
+            color, bold = styles[idx % len(styles)]
+            txt = (BOLD if bold else "") + color + final_small + RESET
+            # move cursor up two lines, clear them, rewrite (works in most terminals)
+            sys.stdout.write("\033[F\033[K")  # move up 1 line and clear
+            sys.stdout.write("\033[F\033[K")  # move up 1 more line and clear
+            sys.stdout.write(center(txt, cols) + "\n")
+            sys.stdout.write(center(WHITE + "(Press Ctrl+C to exit)" + RESET, cols) + "\n")
             sys.stdout.flush()
-            show = not show
-            time.sleep(0.8)
+            idx += 1
+            time.sleep(1.0)  # color/font change interval
     except KeyboardInterrupt:
-        # don't be noisy on exit; keep Ctrl+C behaviour natural
         print("\n" + RED + "Exiting..." + RESET)
         return
 
