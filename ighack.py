@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Termux-ready IG HACK reel script
-- Single big bold title "INSTA HACK" in custom ASCII art with fade effect
+- Single big bold title "INSTA HACK" with mobile-friendly resize
 - Subtitle: [Instagram - Xyberkruze]
 - Final message "Valla Panikkum Poda..." scrolling infinitely with bold and color variations
 """
@@ -108,8 +108,8 @@ def get_profile_info(username):
         }
     except: return None
 
-# ===== Custom ASCII title =====
-ASCII_TITLE = """
+# ===== Custom ASCII titles =====
+ASCII_TITLE_DESKTOP = """
  __    _______     __    __       ___       ______  __  ___ 
 |  |  /  _____|   |  |  |  |     /   \     /      ||  |/  / 
 |  | |  |  __     |  |__|  |    /  ^  \   |  ,----'|  '  /  
@@ -118,10 +118,22 @@ ASCII_TITLE = """
 |__|  \______|    |__|  |__| /__/     \__\ \______||__|\__\ 
 """
 
-# ===== Render single big ASCII title =====
+ASCII_TITLE_MOBILE = """
+ ___ ____   _   _    _    ____ _  __
+|_ _/ ___| | | | |  / \  / ___| |/ /
+ | | |  _  | |_| | / _ \| |   | ' / 
+ | | |_| | |  _  |/ ___ \ |___| . \ 
+|___\____| |_| |_/_/   \_\____|_|\_\
+"""
+
+# ===== Render single big ASCII title with mobile adjustment =====
 def render_title(width, color):
     subtitle = "[Instagram - Xyberkruze]"
-    return center(BOLD + color + ASCII_TITLE + RESET, width) + "\n" + center(WHITE + subtitle + RESET, width)
+    if width < 80:  # small/mobile terminal
+        ascii_title = ASCII_TITLE_MOBILE
+    else:
+        ascii_title = ASCII_TITLE_DESKTOP
+    return center(BOLD + color + ascii_title + RESET, width) + "\n" + center(WHITE + subtitle + RESET, width)
 
 # ===== Final scrolling message =====
 def final_message_loop(cols):
@@ -199,4 +211,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
